@@ -1,53 +1,90 @@
 $ErrorActionPreference = "Stop"
 
-$AppDir = if ($env:MAKERSHELF_DIR) { $env:MAKERSHELF_DIR } else { "makershelf-server" }
-$ReleaseVersion = "v0.2.9-beta.27"
-$ImageTag = if ($env:MAKERSHELF_IMAGE_TAG) { $env:MAKERSHELF_IMAGE_TAG } else { $ReleaseVersion }
-$Image = "ghcr.io/nilsn3dp/makershelf-server:$ImageTag"
-$ImageArchiveUrl = if ($env:MAKERSHELF_IMAGE_ARCHIVE_URL) { $env:MAKERSHELF_IMAGE_ARCHIVE_URL } else { "https://github.com/NilsN3DP/makershelf-releases/releases/download/$ReleaseVersion/makershelf-server-$ReleaseVersion.tar.gz" }
-$DataDir = if ($env:MAKERSHELF_DATA_DIR) { $env:MAKERSHELF_DATA_DIR } else { "" }
-$Port = if ($env:MAKERSHELF_PORT) { $env:MAKERSHELF_PORT } else { "3000" }
-$BindIp = if ($env:MAKERSHELF_BIND_IP) { $env:MAKERSHELF_BIND_IP } else { "" }
+$script:PauseOnExit = $env:MAKERSHELF_NO_PAUSE -ne "1"
+$script:TranscriptStarted = $false
+$script:LogPath = Join-Path ([IO.Path]::GetTempPath()) ("makershelf-install-{0}.log" -f (Get-Date -Format "yyyyMMdd-HHmmss"))
 
-function New-RandomBase64 {
-  param([int]$Bytes = 32)
-  $buffer = New-Object byte[] $Bytes
-  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+function Wait-MakershelfExit {
+  param([int]$ExitCode = 0)
   try {
-    $rng.GetBytes($buffer)
-  } finally {
-    $rng.Dispose()
+    if ($script:TranscriptStarted) {
+      Stop-Transcript | Out-Null
+    }
+  } catch {}
+
+  if ($script:PauseOnExit) {
+    Write-Host ""
+    Write-Host "Log file: $script:LogPath"
+    Read-Host "Press Enter to close this window"
   }
-  [Convert]::ToBase64String($buffer)
+
+  exit $ExitCode
 }
 
-docker --version | Out-Null
-docker compose version | Out-Null
+try {
+  Start-Transcript -Path $script:LogPath -Force | Out-Null
+  $script:TranscriptStarted = $true
+} catch {
+  Write-Host "Could not start installer log: $($_.Exception.Message)"
+}
 
-New-Item -ItemType Directory -Path $AppDir -Force | Out-Null
-Set-Location $AppDir
+try {
+  $AppDir = if ($env:MAKERSHELF_DIR) { $env:MAKERSHELF_DIR } else { "makershelf-server" }
+  $ReleaseVersion = "v0.2.9-beta.27"
+  $ImageTag = if ($env:MAKERSHELF_IMAGE_TAG) { $env:MAKERSHELF_IMAGE_TAG } else { $ReleaseVersion }
+  $Image = "ghcr.io/nilsn3dp/makershelf-server:$ImageTag"
+  $ImageArchiveUrl = if ($env:MAKERSHELF_IMAGE_ARCHIVE_URL) { $env:MAKERSHELF_IMAGE_ARCHIVE_URL } else { "https://github.com/NilsN3DP/makershelf-releases/releases/download/$ReleaseVersion/makershelf-server-$ReleaseVersion.tar.gz" }
+  $DataDir = if ($env:MAKERSHELF_DATA_DIR) { $env:MAKERSHELF_DATA_DIR } else { "" }
+  $Port = if ($env:MAKERSHELF_PORT) { $env:MAKERSHELF_PORT } else { "3000" }
+  $BindIp = if ($env:MAKERSHELF_BIND_IP) { $env:MAKERSHELF_BIND_IP } else { "" }
 
-if (-not (Test-Path ".env")) {
-  $dbPassword = (New-RandomBase64 24).Replace("/", "A").Replace("+", "a")
-  $authSecret = New-RandomBase64 48
-  if ($DataDir) {
-    $postgresVolume = Join-Path $DataDir "postgres"
-    $configVolume = Join-Path $DataDir "config"
-    $storageVolume = Join-Path $DataDir "storage"
-    $importVolume = Join-Path $DataDir "import"
-    New-Item -ItemType Directory -Path $postgresVolume, $configVolume, $storageVolume, $importVolume -Force | Out-Null
-  } else {
-    $postgresVolume = "makershelf_postgres"
-    $configVolume = "makershelf_config"
-    $storageVolume = "makershelf_storage"
-    $importVolume = "makershelf_import"
+  function New-RandomBase64 {
+    param([int]$Bytes = 32)
+    $buffer = New-Object byte[] $Bytes
+    $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+      $rng.GetBytes($buffer)
+    } finally {
+      $rng.Dispose()
+    }
+    [Convert]::ToBase64String($buffer)
   }
-  if ($BindIp) {
-    $portBinding = "{0}:{1}:3000" -f $BindIp, $Port
-  } else {
-    $portBinding = "{0}:3000" -f $Port
+
+  Write-Host "makershelf Server installer $ReleaseVersion"
+  Write-Host "Log file: $script:LogPath"
+  Write-Host ""
+
+  try {
+    docker --version
+    docker compose version
+  } catch {
+    throw "Docker oder Docker Compose ist nicht erreichbar. Bitte Docker Desktop starten und warten, bis unten links 'Engine running' angezeigt wird. Originalfehler: $($_.Exception.Message)"
   }
-  @"
+
+  New-Item -ItemType Directory -Path $AppDir -Force | Out-Null
+  Set-Location $AppDir
+
+  if (-not (Test-Path ".env")) {
+    $dbPassword = (New-RandomBase64 24).Replace("/", "A").Replace("+", "a")
+    $authSecret = New-RandomBase64 48
+    if ($DataDir) {
+      $postgresVolume = Join-Path $DataDir "postgres"
+      $configVolume = Join-Path $DataDir "config"
+      $storageVolume = Join-Path $DataDir "storage"
+      $importVolume = Join-Path $DataDir "import"
+      New-Item -ItemType Directory -Path $postgresVolume, $configVolume, $storageVolume, $importVolume -Force | Out-Null
+    } else {
+      $postgresVolume = "makershelf_postgres"
+      $configVolume = "makershelf_config"
+      $storageVolume = "makershelf_storage"
+      $importVolume = "makershelf_import"
+    }
+    if ($BindIp) {
+      $portBinding = "{0}:{1}:3000" -f $BindIp, $Port
+    } else {
+      $portBinding = "{0}:3000" -f $Port
+    }
+    @"
 MAKERSHELF_IMAGE=$Image
 MAKERSHELF_PORT=$Port
 MAKERSHELF_BIND_IP=$BindIp
@@ -61,9 +98,9 @@ MAKERSHELF_CONFIG_VOLUME=$configVolume
 MAKERSHELF_STORAGE_VOLUME=$storageVolume
 MAKERSHELF_IMPORT_VOLUME=$importVolume
 "@ | Set-Content -Path ".env" -Encoding UTF8
-}
+  }
 
-@"
+  @"
 services:
   postgres:
     image: postgres:17-alpine
@@ -111,20 +148,27 @@ volumes:
   makershelf_import:
 "@ | Set-Content -Path "compose.yml" -Encoding UTF8
 
-try {
-  docker compose pull
-  Write-Host "Image pull completed."
-} catch {
-  Write-Host "Image pull failed. Falling back to public release archive:"
-  Write-Host $ImageArchiveUrl
-  $archive = Join-Path ([IO.Path]::GetTempPath()) "makershelf-server-image.tar.gz"
-  Invoke-WebRequest -Uri $ImageArchiveUrl -OutFile $archive
-  docker load -i $archive
-  Remove-Item $archive -Force
-}
-docker compose up -d
+  try {
+    docker compose pull
+    Write-Host "Image pull completed."
+  } catch {
+    Write-Host "Image pull failed. Falling back to public release archive:"
+    Write-Host $ImageArchiveUrl
+    $archive = Join-Path ([IO.Path]::GetTempPath()) "makershelf-server-image.tar.gz"
+    Invoke-WebRequest -Uri $ImageArchiveUrl -OutFile $archive
+    docker load -i $archive
+    Remove-Item $archive -Force
+  }
+  docker compose up -d
 
-$installedPort = (Get-Content ".env" | Where-Object { $_ -like "MAKERSHELF_PORT=*" } | Select-Object -First 1).Split("=")[1]
-Write-Host ""
-Write-Host "makershelf Server $ReleaseVersion is starting."
-Write-Host "Open: http://localhost:$installedPort/setup"
+  $installedPort = (Get-Content ".env" | Where-Object { $_ -like "MAKERSHELF_PORT=*" } | Select-Object -First 1).Split("=")[1]
+  Write-Host ""
+  Write-Host "makershelf Server $ReleaseVersion is starting."
+  Write-Host "Open: http://localhost:$installedPort/setup"
+  Wait-MakershelfExit 0
+} catch {
+  Write-Host ""
+  Write-Host "makershelf installation failed." -ForegroundColor Red
+  Write-Host $_.Exception.Message -ForegroundColor Red
+  Wait-MakershelfExit 1
+}
