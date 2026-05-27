@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>makershelf-server</Name>
+  <Repository>ghcr.io/nilsn3dp/makershelf-server:beta</Repository>
+  <Registry>https://ghcr.io/</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/NilsN3DP/makershelf-releases/issues</Support>
+  <Project>https://github.com/NilsN3DP/makershelf-releases</Project>
+  <Overview>makershelf Server – Asset-Verwaltung für Maker und 3D-Druck-Teams. Verwalte Filamente, Projekte, Drucker und mehr. Benötigt einen laufenden PostgreSQL-Container (z.B. makershelf-postgres).</Overview>
+  <Category>Tools: MediaApp:Other</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/NilsN3DP/makershelf-releases/main/unraid/makershelf-server.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/NilsN3DP/makershelf-releases/main/unraid/icon.png</Icon>
+  <ExtraParams>--restart unless-stopped</ExtraParams>
+  <DonateText>Buy me a coffee</DonateText>
+  <DonateLink>https://buymeacoffee.com/nilsn3dp</DonateLink>
+
+  <!-- Port -->
+  <Config Name="Web UI Port" Target="3000" Default="3000" Mode="tcp"
+          Description="Port für das Web-Interface" Type="Port"
+          Display="always" Required="true" Mask="false">3000</Config>
+
+  <!-- Volumes -->
+  <Config Name="Config" Target="/config" Default="/mnt/user/appdata/makershelf" Mode="rw"
+          Description="App-Konfiguration und Datenbank-Migrationen" Type="Path"
+          Display="always" Required="true" Mask="false">/mnt/user/appdata/makershelf</Config>
+
+  <Config Name="Storage" Target="/storage" Default="/mnt/user/Makershelf/Projects" Mode="rw"
+          Description="Projekt- und Asset-Dateien" Type="Path"
+          Display="always" Required="true" Mask="false">/mnt/user/Makershelf/Projects</Config>
+
+  <Config Name="Import" Target="/import" Default="/mnt/user/Makershelf/Import" Mode="rw"
+          Description="Import-Verzeichnis für Bulk-Uploads" Type="Path"
+          Display="always" Required="false" Mask="false">/mnt/user/Makershelf/Import</Config>
+
+  <!-- Required Variables -->
+  <Config Name="Datenbank URL" Target="DATABASE_URL"
+          Default="postgres://makershelf:makershelf@makershelf-postgres:5432/makershelf"
+          Description="PostgreSQL-Verbindungs-URL. Passe Passwort und Host an deinen Postgres-Container an."
+          Type="Variable" Display="always" Required="true" Mask="false">postgres://makershelf:makershelf@makershelf-postgres:5432/makershelf</Config>
+
+  <Config Name="Auth Secret" Target="MAKERSHELF_AUTH_SECRET" Default=""
+          Description="Langer zufälliger Secret-String (min. 32 Zeichen). Einmal setzen, nie ändern!"
+          Type="Variable" Display="always" Required="true" Mask="true"/>
+
+  <!-- Optional First-Run Bootstrap -->
+  <Config Name="Bootstrap E-Mail" Target="MAKERSHELF_BOOTSTRAP_EMAIL" Default=""
+          Description="Admin-E-Mail für den ersten Start (danach ignoriert)" Type="Variable"
+          Display="always" Required="false" Mask="false"/>
+
+  <Config Name="Bootstrap Passwort" Target="MAKERSHELF_BOOTSTRAP_PASSWORD" Default=""
+          Description="Admin-Passwort für den ersten Start (danach ignoriert)" Type="Variable"
+          Display="always" Required="false" Mask="true"/>
+
+  <!-- Display Name -->
+  <Config Name="App Name" Target="MAKERSHELF_APP_NAME" Default="makershelf Server"
+          Description="Anzeigename der Instanz" Type="Variable"
+          Display="advanced" Required="false" Mask="false">makershelf Server</Config>
+
+  <!-- Hidden fixed variables -->
+  <Config Name="MAKERSHELF_PRODUCT_PROFILE" Target="MAKERSHELF_PRODUCT_PROFILE" Default="server"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">server</Config>
+  <Config Name="DATABASE_PROVIDER" Target="DATABASE_PROVIDER" Default="postgresql"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">postgresql</Config>
+  <Config Name="MAKERSHELF_DEPLOYMENT_MODE" Target="MAKERSHELF_DEPLOYMENT_MODE" Default="docker-team"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">docker-team</Config>
+  <Config Name="MAKERSHELF_DATA_BACKEND" Target="MAKERSHELF_DATA_BACKEND" Default="postgres"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">postgres</Config>
+  <Config Name="MAKERSHELF_STORAGE_DRIVER" Target="MAKERSHELF_STORAGE_DRIVER" Default="filesystem"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">filesystem</Config>
+  <Config Name="MAKERSHELF_APPDATA_ROOT" Target="MAKERSHELF_APPDATA_ROOT" Default="/config"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">/config</Config>
+  <Config Name="MAKERSHELF_STORAGE_ROOT" Target="MAKERSHELF_STORAGE_ROOT" Default="/storage"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">/storage</Config>
+  <Config Name="MAKERSHELF_IMPORT_ROOT" Target="MAKERSHELF_IMPORT_ROOT" Default="/import"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">/import</Config>
+  <Config Name="MAKERSHELF_LICENSE_TIER" Target="MAKERSHELF_LICENSE_TIER" Default="community"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">community</Config>
+  <Config Name="MAKERSHELF_LICENSE_KEY" Target="MAKERSHELF_LICENSE_KEY" Default="MAKERSHELF-COMMUNITY-unraid"
+          Type="Variable" Display="advanced-hide" Required="true" Mask="false">MAKERSHELF-COMMUNITY-unraid</Config>
+  <Config Name="MAKERSHELF_UPDATE_CHANNEL" Target="MAKERSHELF_UPDATE_CHANNEL" Default="beta"
+          Type="Variable" Display="advanced-hide" Required="false" Mask="false">beta</Config>
+</Container>
