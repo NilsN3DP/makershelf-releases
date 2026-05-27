@@ -9,6 +9,18 @@ $DataDir = if ($env:MAKERSHELF_DATA_DIR) { $env:MAKERSHELF_DATA_DIR } else { "" 
 $Port = if ($env:MAKERSHELF_PORT) { $env:MAKERSHELF_PORT } else { "3000" }
 $BindIp = if ($env:MAKERSHELF_BIND_IP) { $env:MAKERSHELF_BIND_IP } else { "" }
 
+function New-RandomBase64 {
+  param([int]$Bytes = 32)
+  $buffer = New-Object byte[] $Bytes
+  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try {
+    $rng.GetBytes($buffer)
+  } finally {
+    $rng.Dispose()
+  }
+  [Convert]::ToBase64String($buffer)
+}
+
 docker --version | Out-Null
 docker compose version | Out-Null
 
@@ -16,8 +28,8 @@ New-Item -ItemType Directory -Path $AppDir -Force | Out-Null
 Set-Location $AppDir
 
 if (-not (Test-Path ".env")) {
-  $dbPassword = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(24)).Replace("/", "A").Replace("+", "a")
-  $authSecret = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(48))
+  $dbPassword = (New-RandomBase64 24).Replace("/", "A").Replace("+", "a")
+  $authSecret = New-RandomBase64 48
   if ($DataDir) {
     $postgresVolume = Join-Path $DataDir "postgres"
     $configVolume = Join-Path $DataDir "config"
