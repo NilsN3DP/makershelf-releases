@@ -109,6 +109,7 @@ volumes:
   makershelf_import:
 EOF
 
+docker logout ghcr.io 2>/dev/null || true
 if docker compose pull; then
   echo "Image pull completed."
 else
