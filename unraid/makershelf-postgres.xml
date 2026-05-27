@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>makershelf-postgres</Name>
+  <Repository>postgres:17-alpine</Repository>
+  <Registry>https://hub.docker.com/</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/NilsN3DP/makershelf-releases/issues</Support>
+  <Project>https://github.com/NilsN3DP/makershelf-releases</Project>
+  <Overview>PostgreSQL-Datenbank für makershelf Server. Muss vor makershelf-server gestartet sein.</Overview>
+  <Category>Tools:</Category>
+  <TemplateURL>https://raw.githubusercontent.com/NilsN3DP/makershelf-releases/main/unraid/makershelf-postgres.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/NilsN3DP/makershelf-releases/main/unraid/postgres-icon.png</Icon>
+  <ExtraParams>--restart unless-stopped</ExtraParams>
+
+  <Config Name="Data" Target="/var/lib/postgresql/data" Default="/mnt/user/appdata/makershelf-postgres" Mode="rw"
+          Description="PostgreSQL Datenbankdateien" Type="Path"
+          Display="always" Required="true" Mask="false">/mnt/user/appdata/makershelf-postgres</Config>
+
+  <Config Name="POSTGRES_DB" Target="POSTGRES_DB" Default="makershelf"
+          Description="Datenbankname" Type="Variable"
+          Display="always" Required="true" Mask="false">makershelf</Config>
+
+  <Config Name="POSTGRES_USER" Target="POSTGRES_USER" Default="makershelf"
+          Description="Datenbankbenutzer" Type="Variable"
+          Display="always" Required="true" Mask="false">makershelf</Config>
+
+  <Config Name="POSTGRES_PASSWORD" Target="POSTGRES_PASSWORD" Default=""
+          Description="Datenbankpasswort (sicheres Passwort wählen!)" Type="Variable"
+          Display="always" Required="true" Mask="true"/>
+</Container>
