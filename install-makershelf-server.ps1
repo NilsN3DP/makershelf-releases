@@ -149,6 +149,7 @@ volumes:
 "@ | Set-Content -Path "compose.yml" -Encoding UTF8
 
   try {
+    docker logout ghcr.io 2>$null | Out-Null
     docker compose pull
     Write-Host "Image pull completed."
   } catch {
