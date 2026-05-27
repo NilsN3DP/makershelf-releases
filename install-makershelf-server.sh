@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_DIR="${MAKERSHELF_DIR:-makershelf-server}"
-RELEASE_VERSION="v0.2.9-beta.27"
+RELEASE_VERSION="v0.2.9-beta.28"
 IMAGE_TAG="${MAKERSHELF_IMAGE_TAG:-${RELEASE_VERSION}}"
 IMAGE="ghcr.io/nilsn3dp/makershelf-server:${IMAGE_TAG}"
 IMAGE_ARCHIVE_URL="${MAKERSHELF_IMAGE_ARCHIVE_URL:-https://github.com/NilsN3DP/makershelf-releases/releases/download/${RELEASE_VERSION}/makershelf-server-${RELEASE_VERSION}.tar.gz}"
