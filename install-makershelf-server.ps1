@@ -30,7 +30,7 @@ try {
 
 try {
   $AppDir = if ($env:MAKERSHELF_DIR) { $env:MAKERSHELF_DIR } else { "makershelf-server" }
-  $ReleaseVersion = "v0.2.9-beta.27"
+  $ReleaseVersion = "v0.2.9-beta.28"
   $ImageTag = if ($env:MAKERSHELF_IMAGE_TAG) { $env:MAKERSHELF_IMAGE_TAG } else { $ReleaseVersion }
   $Image = "ghcr.io/nilsn3dp/makershelf-server:$ImageTag"
   $ImageArchiveUrl = if ($env:MAKERSHELF_IMAGE_ARCHIVE_URL) { $env:MAKERSHELF_IMAGE_ARCHIVE_URL } else { "https://github.com/NilsN3DP/makershelf-releases/releases/download/$ReleaseVersion/makershelf-server-$ReleaseVersion.tar.gz" }
