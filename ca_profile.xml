@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Profiles>
+  <Profile>
+    <Name>NilsN3DP</Name>
+    <Description>makershelf - 3D print file and project manager for makers, workshops and teams.</Description>
+    <Repository>https://github.com/NilsN3DP/makershelf</Repository>
+    <GitHub>https://github.com/NilsN3DP</GitHub>
+    <Support>https://github.com/NilsN3DP/makershelf/issues</Support>
+    <Icon>https://raw.githubusercontent.com/NilsN3DP/makershelf/main/public/makershelf-logo.svg</Icon>
+  </Profile>
+</Profiles>
